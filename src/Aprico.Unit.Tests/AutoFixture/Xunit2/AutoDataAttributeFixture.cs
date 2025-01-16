@@ -16,20 +16,39 @@
 
 #endregion
 
-using System.Diagnostics.CodeAnalysis;
-using AutoFixture;
 using AutoFixture.AutoMoq;
-using AutoFixture.Xunit2;
+using MicroElements.AutoFixture.NodaTime;
+using Moq;
+using NodaTime;
 
 namespace Aprico.AutoFixture.Xunit2;
 
-[SuppressMessage("ReSharper", "UnusedType.Global", Justification = "Public API.")]
-public sealed class AutoMoqDataAttribute<T> : AutoDataAttribute
-	where T : CompositeCustomization, new()
+public class AutoDataAttributeFixture
 {
-	// @formatter:keep_existing_arrangement true
-	public AutoMoqDataAttribute() : base(
-		static () => new Fixture()
-			.Customize(new AutoMoqCustomization())
-			.Customize(new T())) { }
+	[Theory]
+	[AutoData<NodaTimeCustomization>]
+	public void Allow1AutoDataCustomization(Instant instant, LocalDate date)
+	{
+		instant.Should()
+			.BeOfType<Instant>()
+			.And.NotBeNull();
+
+		date.Should()
+			.BeOfType<LocalDate>()
+			.And.NotBeNull();
+	}
+
+	[Theory]
+	[AutoData<NodaTimeCustomization, AutoMoqCustomization>]
+	public void Allow2AutoDataCustomization(LocalDate date, IClock clock)
+	{
+		date.Should()
+			.BeOfType<LocalDate>()
+			.And.NotBeNull();
+
+		Mock.Get(clock)
+			.Should()
+			.BeOfType<Mock<IClock>>()
+			.And.NotBeNull();
+	}
 }
