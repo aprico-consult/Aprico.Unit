@@ -16,38 +16,23 @@
 
 #endregion
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using AutoFixture;
 using Microsoft.EntityFrameworkCore;
-using MockQueryable;
-using MockQueryable.Moq;
 using Moq;
 
-namespace Aprico.Moq.Extensions;
+namespace Aprico.AutoFixture;
 
 [SuppressMessage("ReSharper", "UnusedType.Global", Justification = "Public API.")]
-[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
-public static class MockExtensions
+public class AutoDbContextCustomization : ICustomization
 {
-	public static DbSet<T> AsDbSetMock<T>(this IEnumerable<T> t)
-		where T : class
+	#region ICustomization Members
+
+	[SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Validated by AutoFixture.")]
+	public void Customize(IFixture fixture)
 	{
-		return t.AsQueryable()
-			.BuildMockDbSet()
-			.Object;
+		fixture.Customize<DbContext>(static composer => composer.FromFactory(static () => new Mock<DbContext>().Object));
 	}
 
-	public static IQueryable<T> AsQueryableMock<T>(this IEnumerable<T> t)
-		where T : class
-	{
-		return t.AsQueryable()
-			.BuildMock();
-	}
-
-	public static Mock<T> AsMock<T>(this T t)
-		where T : class
-	{
-		return Mock.Get(t);
-	}
+	#endregion
 }
